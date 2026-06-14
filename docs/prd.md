@@ -1,15 +1,15 @@
 # WhatLog PRD
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Status:** Draft  
 **Author:** June  
-**Date:** 2026-06-13
+**Date:** 2026-06-14
 
 ---
 
 ## Executive Summary
 
-WhatLog (`wl`) is a personal CLI action log for capturing what you're doing throughout the day. A single command appends a timestamped, optionally tagged entry to a single append-only JSONL file. Entries are queryable by date range and filterable by tag. The tool is built in TypeScript using the Effect library, runs on Bun, and follows XDG directory conventions. It is a personal productivity tool — not a team or multi-user product — and is designed to stay out of the way while being genuinely useful at review time.
+WhatLog (`wl`) is a personal CLI action log for capturing what you're doing throughout the day. A single command appends a timestamped, optionally tagged entry to a single append-only JSONL file. Entries are queryable by date range and filterable by tag. The tool is built in plain TypeScript with a functional-core/imperative-shell architecture, runs on Bun, and follows XDG directory conventions. It is a personal productivity tool — not a team or multi-user product — and is designed to stay out of the way while being genuinely useful at review time.
 
 ---
 
@@ -42,7 +42,7 @@ The ideal tool has zero friction on write and reasonable power on read. The clos
 3. Entries are queryable by date, date range, and tag, covering the common review scenarios.
 4. The data format is human-readable, portable, and not tied to this tool — plain JSONL.
 5. The append-only storage model preserves a full audit trail; edits and deletes are recorded as amendments, never overwrites.
-6. The tool uses the Effect library throughout, making it a meaningful learning project for Effect's core patterns.
+6. The tool is built in plain TypeScript with a functional-core/imperative-shell architecture (pure logic isolated from side effects; a hand-rolled `Result<T, E>` type for fallible operations), making it a focused learning project for core TypeScript — discriminated unions, generics, narrowing, and async — without a heavy framework. Reaching for a library like Effect is deferred until the project is large enough to feel the problem it solves.
 
 ---
 
@@ -191,7 +191,7 @@ The ideal tool has zero friction on write and reasonable power on read. The clos
 
 - Data dir: `$XDG_DATA_HOME/whatlog/` (default: `~/.local/share/whatlog/`); created on first run if absent
 - Config dir: `$XDG_CONFIG_HOME/whatlog/` (default: `~/.config/whatlog/`)
-- Override data dir via `WHATLOG_DIR` env var
+- Override data dir via `WHATLOG_DATA_DIR` env var; override config dir via `WHATLOG_CONFIG_DIR` (each directory has its own explicit override, rather than a single ambiguous flag)
 - Config file: `~/.config/whatlog/config.toml` (optional; tool works with sensible defaults without it)
 - Configurable: default entry count for `wl ls`, date/time display format preference
 
@@ -236,6 +236,6 @@ The ideal tool has zero friction on write and reasonable power on read. The clos
 - At personal scale, streaming and filtering a single JSONL file is fast enough for all query operations — no indexing needed
 - Only one instance of `wl` runs at a time; no concurrent write safety is needed
 - The user is comfortable editing `config.toml` by hand if they want to customize defaults
-- Effect v3 (stable) is the target, not Effect v2 or any pre-release
+- No third-party runtime framework (Effect, RxJS, etc.); the standard library plus Bun's APIs are sufficient at this scale. Runtime validation of records is hand-rolled or via a lightweight schema lib if needed.
 - `~/.local/share` does not exist by default on macOS but is safe to create; the tool creates it on first run
 - Install story: `bun build --compile` produces a standalone binary, symlinked into `~/.local/bin/wl`

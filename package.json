@@ -1,15 +1,16 @@
 {
   "name": "whatlog",
   "module": "src/index.ts",
-  "type": "module",
-  "private": true,
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
+  "private": true,
+  "type": "module",
   "dependencies": {
-    "effect": "^3.21.3"
+    "@bloodyowl/boxed": "^3.4.0",
+    "temporal-polyfill": "^0.3.2"
   }
 }
