@@ -1,6 +1,11 @@
 {
   "name": "whatlog",
   "module": "src/index.ts",
+  "scripts": {
+    "build": "bun build src/index.ts --compile --outfile dist/wl",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },

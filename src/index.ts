@@ -17,12 +17,22 @@ import type { DateRange, EntryFilter } from "./query.ts"
 import { alwaysYes, confirmImpl, defaultAmendDeps, editEntry, removeEntry } from "./amend.ts"
 import type { AmendOutcome, Confirm } from "./amend.ts"
 
-const USAGE = `usage:
-  wl "<message>"                 append an entry (#tags parsed inline)
+const USAGE = `whatlog — a personal, append-only action log
+
+usage:
+  wl "<message>"                        append an entry (#tags parsed inline)
   wl ls [--date D] [--start D --end D] [--tag T]
   wl today | yesterday | week | month   [--tag T]
   wl rm <id-prefix> [--yes]
-  wl edit <id-prefix> "<message>" [--yes]`
+  wl edit <id-prefix> "<message>" [--yes]
+  wl help                               show this message
+
+flags:
+  --date D            ISO date (YYYY-MM-DD)
+  --start D --end D   inclusive date range
+  --tag T             filter by tag
+  --yes, -y           skip confirmation prompts
+  --help, -h          show this message`
 
 // --- tiny argv parser: positionals + value-flags + boolean --yes/-y ---
 
@@ -172,6 +182,13 @@ function main(argv: string[]): void {
   const tokens = argv.slice(2)
   const raw = tokens.join(" ").trim()
 
+  // Explicit help is success: print to stdout and exit 0.
+  if (tokens.some((t) => t === "--help" || t === "-h") || tokens[0] === "help") {
+    console.log(USAGE)
+    return
+  }
+
+  // No args at all is a misuse: usage goes to stderr with a failure code.
   if (raw.length === 0) {
     console.error(USAGE)
     process.exitCode = 1

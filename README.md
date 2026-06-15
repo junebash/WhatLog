@@ -5,13 +5,29 @@ See [docs/prd.md](docs/prd.md) for the full design.
 
 ## Install
 
+Install dependencies:
+
 ```bash
 bun install
 ```
 
+Then build and install the `wl` binary onto your `PATH`:
+
+```bash
+just install
+```
+
+This compiles a standalone binary and copies it to `~/.local/bin/wl` (override
+with `WHATLOG_BIN_DIR`). Make sure that directory is on your `PATH`. To remove
+it later, run `just uninstall`.
+
+Prefer not to install? You can run straight from source instead — see
+[Usage](#usage) and [Development](#development).
+
 ## Usage
 
-Run with `bun src/index.ts <args>` (or build a `wl` binary — see WL-17).
+Once installed, invoke `wl` directly. To run from source without building, use
+`just run <args>` (or `bun src/index.ts <args>`).
 
 ```bash
 # Append an entry. Inline #hashtags are parsed into tags automatically.
@@ -58,7 +74,18 @@ currently the `temporal-polyfill` package until Bun ships it natively).
 
 ## Development
 
+Common tasks are wrapped in a [`Justfile`](Justfile) — run `just` to list them:
+
 ```bash
-bun test            # run the test suite
-bunx tsc --noEmit   # typecheck
+just build       # compile a standalone binary into dist/wl
+just install     # build, then copy wl onto your PATH
+just uninstall   # remove the installed binary
+just run <args>  # run from source without building, e.g. `just run today --tag ci`
+just test        # run the test suite
+just typecheck   # tsc --noEmit
+just clean       # delete build artifacts (dist/)
 ```
+
+The same build/test/typecheck steps are also exposed as `package.json` scripts
+(`bun run build`, `bun run test`, `bun run typecheck`) if you'd rather not use
+`just`.
