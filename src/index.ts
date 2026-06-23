@@ -182,16 +182,11 @@ function main(argv: string[]): void {
   const tokens = argv.slice(2)
   const raw = tokens.join(" ").trim()
 
-  // Explicit help is success: print to stdout and exit 0.
-  if (tokens.some((t) => t === "--help" || t === "-h") || tokens[0] === "help") {
+  // A bare `wl`, `wl help`, or `--help/-h` are all requests for the help menu:
+  // print to stdout and exit 0. With no subcommand there's nothing to misuse —
+  // showing usage is the friendliest default.
+  if (raw.length === 0 || tokens.some((t) => t === "--help" || t === "-h") || tokens[0] === "help") {
     console.log(USAGE)
-    return
-  }
-
-  // No args at all is a misuse: usage goes to stderr with a failure code.
-  if (raw.length === 0) {
-    console.error(USAGE)
-    process.exitCode = 1
     return
   }
 
