@@ -97,8 +97,8 @@ dirs) → `dispatch` to a command → print the `Ok` line or an `error:` line an
 
 ## Version control
 
-This repo uses **Jujutsu (`jj`)**, not git directly (note the `.jj/` directory, no `.git/`). Use `jj`
-commands for history and commits. Use `trash`, never `rm -rf`.
+This repo uses **git** (note the `.git/` directory). Use `git` commands for history and commits;
+prefer `git rebase` over `git merge` to keep a linear history. Use `trash`, never `rm -rf`.
 
 ## Bun runtime conventions
 
