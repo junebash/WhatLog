@@ -7,8 +7,12 @@ bin_dir := env_var_or_default("WHATLOG_BIN_DIR", env_var("HOME") / ".local/bin")
 default:
     @just --list
 
+# Install dependencies, but only if node_modules is missing (cheap to re-run).
+deps:
+    @test -d node_modules || bun install
+
 # Compile a standalone `wl` binary into dist/.
-build:
+build: deps
     bun build src/index.ts --compile --outfile dist/wl
 
 # Build, then install `wl` onto your PATH ({{bin_dir}}).
@@ -22,15 +26,15 @@ uninstall:
     trash {{bin_dir}}/wl 2>/dev/null || rm -f {{bin_dir}}/wl
 
 # Run the CLI from source without building, e.g. `just run today --tag ci`.
-run *args:
+run *args: deps
     bun src/index.ts {{args}}
 
 # Run the test suite.
-test:
+test: deps
     bun test
 
 # Typecheck without emitting.
-typecheck:
+typecheck: deps
     bunx tsc --noEmit
 
 # Delete build artifacts.
