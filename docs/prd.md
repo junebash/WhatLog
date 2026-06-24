@@ -115,7 +115,7 @@ The ideal tool has zero friction on write and reasonable power on read. The clos
 **`wl ls`** — Full log view, `git log` style. Most recent entries first.
 
 - Default: last 20 entries
-- Display: short unique ID prefix (highlighted), human-relative timestamp, message with tags colored
+- Display: short unique ID prefix (highlighted), clock time (`hh:mm`, 12-/24-hour per `time_format` config), message with tags colored
 - Date boundaries rendered as a muted separator between days:
   ```
   ── June 13, 2026 ──────────────────

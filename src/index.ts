@@ -2,6 +2,7 @@ import { Future, Result } from "@bloodyowl/boxed"
 import { Temporal } from "temporal-polyfill"
 
 import { WhatLog, loadConfig } from "./config.ts"
+import type { TimeFormat } from "./config.ts"
 import { appendEntry } from "./append.ts"
 import { listEntries } from "./list.ts"
 import {
@@ -100,11 +101,34 @@ type Context = {
   color: boolean
 }
 
-/** `wl ls` and the date shorthands, parameterized by the range to show. */
+/**
+ * Collapse the `time_format` config to the concrete boolean the renderer wants.
+ * `"auto"` follows the locale's convention via `Intl` — note this is the locale,
+ * not the macOS "24-Hour Time" toggle, which ICU doesn't read; the explicit
+ * "12"/"24" settings are the escape hatch. Resolving here (the shell) keeps the
+ * ambient-locale read out of the pure renderer, mirroring how `zone` is read.
+ */
+function resolveHour12(timeFormat: TimeFormat): boolean {
+  if (timeFormat === "12") {
+    return true
+  }
+  if (timeFormat === "24") {
+    return false
+  }
+  return Intl.DateTimeFormat(undefined, { hour: "numeric" }).resolvedOptions().hour12 ?? false
+}
+
+/**
+ * `wl ls` and the date shorthands, parameterized by the range to show. Config is
+ * loaded here — and nowhere on the capture path — so a malformed `config.toml`
+ * can't block `wl "..."`/`rm`/`edit`; only the read commands depend on it.
+ * `capToDefault` is set only by a bare `wl ls` (no date range); the shorthands
+ * always show their whole range.
+ */
 function runList(
   range: DateRange | undefined,
   tag: string | undefined,
-  count: number | undefined,
+  capToDefault: boolean,
   ctx: Context,
 ): Future<Result<string, Error>> {
   const filter: EntryFilter = {}
@@ -114,7 +138,15 @@ function runList(
   if (tag !== undefined) {
     filter.tag = tag
   }
-  return listEntries({ filter, count, color: ctx.color, now: ctx.now })
+  return loadConfig(ctx.environment).flatMapOk((config) =>
+    listEntries({
+      filter,
+      count: capToDefault ? config.defaultCount : undefined,
+      color: ctx.color,
+      now: ctx.now,
+      hour12: resolveHour12(config.timeFormat),
+    }),
+  )
 }
 
 function describeOutcome(outcome: AmendOutcome): string {
@@ -145,19 +177,16 @@ function dispatch(args: Args, raw: string, ctx: Context): Future<Result<string, 
       return lsRange(args.flags, ctx.zone).match({
         Error: (error): Future<Result<string, Error>> => Future.value(Result.Error(error)),
         // A date filter shows the whole range; a bare `ls` caps to the config default.
-        Ok: (range) =>
-          loadConfig(ctx.environment).flatMapOk((config) =>
-            runList(range, tag, range === undefined ? config.defaultCount : undefined, ctx),
-          ),
+        Ok: (range) => runList(range, tag, range === undefined, ctx),
       })
     case "today":
-      return runList(todayRange(ctx.now), tag, undefined, ctx)
+      return runList(todayRange(ctx.now), tag, false, ctx)
     case "yesterday":
-      return runList(yesterdayRange(ctx.now), tag, undefined, ctx)
+      return runList(yesterdayRange(ctx.now), tag, false, ctx)
     case "week":
-      return runList(weekRange(ctx.now), tag, undefined, ctx)
+      return runList(weekRange(ctx.now), tag, false, ctx)
     case "month":
-      return runList(monthRange(ctx.now), tag, undefined, ctx)
+      return runList(monthRange(ctx.now), tag, false, ctx)
     case "rm": {
       const prefix = rest[0]
       if (prefix === undefined) {

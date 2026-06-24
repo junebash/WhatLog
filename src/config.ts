@@ -80,24 +80,32 @@ export namespace WhatLog {
 // --- WL-3: optional config.toml (sensible defaults when absent) ---
 
 /**
+ * How the list view prints each entry's clock time. `"12"`/`"24"` force a cycle;
+ * `"auto"` follows the system locale's convention (resolved in the shell, since
+ * it reads the ambient locale — the renderer itself takes a plain boolean).
+ */
+export type TimeFormat = "12" | "24" | "auto"
+
+/**
  * Tunable defaults. Kept tiny on purpose — the tool is fully usable with no
- * config file at all. `dateFormat` is reserved for the renderer's future use.
+ * config file at all.
  */
 export type Config = {
   defaultCount: number
-  dateFormat?: string
+  timeFormat: TimeFormat
 }
 
 export const defaultConfig: Config = {
   defaultCount: 20,
+  timeFormat: "auto",
 }
 
 /**
  * Parse the supported subset of TOML: `key = value` lines, where value is an
  * integer or a double-quoted string, plus `#` comments and blank lines. Pure —
  * a hand-rolled parser for two keys, so we don't pull in a TOML dependency.
- * Recognized keys: `default_count` (int) and `date_format` (string); unknown
- * keys are ignored so future additions don't break old binaries.
+ * Recognized keys: `default_count` (int) and `time_format` ("12"/"24"/"auto");
+ * unknown keys are ignored so future additions don't break old binaries.
  */
 export function parseConfig(text: string): Result<Config, Error> {
   const config: Config = { ...defaultConfig }
@@ -124,11 +132,15 @@ export function parseConfig(text: string): Result<Config, Error> {
         config.defaultCount = count
         break
       }
-      case "date_format": {
+      case "time_format": {
         if (!value.startsWith('"') || !value.endsWith('"') || value.length < 2) {
-          return Result.Error(new Error(`date_format must be a quoted string, got: ${value}`))
+          return Result.Error(new Error(`time_format must be a quoted string, got: ${value}`))
         }
-        config.dateFormat = value.slice(1, -1)
+        const format = value.slice(1, -1)
+        if (format !== "12" && format !== "24" && format !== "auto") {
+          return Result.Error(new Error(`time_format must be "12", "24", or "auto", got: ${value}`))
+        }
+        config.timeFormat = format
         break
       }
       default:

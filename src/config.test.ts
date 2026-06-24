@@ -10,13 +10,13 @@ describe("parseConfig", () => {
     expect(unwrap(parseConfig(""))).toEqual(defaultConfig)
   })
 
-  test("parses default_count and date_format, ignoring comments and blanks", () => {
+  test("parses default_count and time_format, ignoring comments and blanks", () => {
     const text = `# my config
 default_count = 50
 
-date_format = "relative"
+time_format = "24"
 `
-    expect(unwrap(parseConfig(text))).toEqual({ defaultCount: 50, dateFormat: "relative" })
+    expect(unwrap(parseConfig(text))).toEqual({ defaultCount: 50, timeFormat: "24" })
   })
 
   test("ignores unknown keys for forward compatibility", () => {
@@ -29,8 +29,12 @@ date_format = "relative"
     expect(parseConfig("default_count = nope").isError()).toBe(true)
   })
 
-  test("rejects an unquoted date_format", () => {
-    expect(parseConfig("date_format = relative").isError()).toBe(true)
+  test("rejects an unquoted time_format", () => {
+    expect(parseConfig("time_format = 24").isError()).toBe(true)
+  })
+
+  test("rejects an unrecognized time_format value", () => {
+    expect(parseConfig('time_format = "13"').isError()).toBe(true)
   })
 
   test("rejects a line with no '='", () => {
@@ -49,7 +53,7 @@ describe("loadConfig", () => {
   test("a present file is parsed", async () => {
     const present: ReadText = () => Future.value(Result.Ok("default_count = 7"))
     const config = await loadConfig({}, present).toPromise()
-    expect(unwrap(config)).toEqual({ defaultCount: 7 })
+    expect(unwrap(config)).toEqual({ defaultCount: 7, timeFormat: "auto" })
   })
 
   test("a non-ENOENT read error propagates", async () => {

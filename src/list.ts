@@ -15,6 +15,7 @@ export type ListOptions = {
   count?: number
   color: boolean
   now: Temporal.ZonedDateTime
+  hour12: boolean
 }
 
 export type ListDeps = {
@@ -43,6 +44,10 @@ export function listEntries(
     const filtered = sortNewestFirst(filterEntries(resolveEntries(records), options.filter))
     const visible = options.count === undefined ? filtered : filtered.slice(0, options.count)
     const prefixes = shortestUniquePrefixes(visible.map((entry) => entry.id))
-    return renderLog(visible, prefixes, { color: options.color, now: options.now })
+    return renderLog(visible, prefixes, {
+      color: options.color,
+      now: options.now,
+      hour12: options.hour12,
+    })
   })
 }

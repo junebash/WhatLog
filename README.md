@@ -65,7 +65,7 @@ usually only type a character or two for `edit`/`rm`.
 
   ```toml
   default_count = 20      # entries shown by a bare `wl ls`
-  date_format = "relative"
+  time_format = "auto"    # clock time: "12", "24", or "auto" (follow locale)
   ```
 
 Day/week/month boundaries are computed in your machine's local time zone,
