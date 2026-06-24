@@ -68,6 +68,10 @@ function padEnd(text: string, width: number): string {
   return text.length >= width ? text : text + " ".repeat(width - text.length)
 }
 
+function padStart(text: string, width: number): string {
+  return text.length >= width ? text : " ".repeat(width - text.length) + text
+}
+
 /**
  * Render resolved entries as the `wl ls` view: reverse-chronological, with a
  * muted day separator whenever the calendar day changes (in `now`'s zone), a
@@ -113,7 +117,7 @@ export function renderLog(
     const shortId = shortIds[index] ?? entry.id
     const time = times[index] ?? ""
     const idCell = yellow(padEnd(shortId, idWidth), options.color)
-    const timeCell = dim(padEnd(time, timeWidth), options.color)
+    const timeCell = dim(padStart(time, timeWidth), options.color)
     lines.push(`${idCell}  ${timeCell}  ${colorizeTags(entry.message, options.color)}`)
   })
 
